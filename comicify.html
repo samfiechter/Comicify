@@ -36,10 +36,19 @@
 	  process:function(){
 	      var t = this;
 	      var canvas = $('<canvas>');
-	      canvas[0].width = t.srcimg[0].width;
-	      canvas[0].height= t.srcimg[0].height;
-	      var ctx = canvas[0].getContext('2d');
+	      var w = canvas[0].width = t.srcimg[0].width;
+	      var h = canvas[0].height= t.srcimg[0].height;
+	      var ctx = canvas[0].getContext('2d');	      
 	      ctx.drawImage(t.srcimg[0],0,0);
+	      var image = ctx.getImageData(0,0,w,h);  //array [4*w*h] of colors RGBA
+	      var mask = Array(w);
+	      for (var i =0;i<w;i++){
+		  mask[i] = Array(h);
+		  for(var j=0;j<h;j++){
+		      mask[i][j]=0;
+		  }
+	      }
+	      
 	      var outImg = $('<img>');
 	      outImg[0].src =canvas[0].toDataURL();
 	      t.container.append(outImg);
