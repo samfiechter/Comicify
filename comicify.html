@@ -1,18 +1,25 @@
 <html>
   <head><title>Comicify</title>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script type="text/javascript">
-      function comicify(){
+      function comicify(c){
 	  var _t = this;
-	  _t.draw(body);
-	  // get paste
-
+	  _t.draw(c);
       }
 
       comicify.prototype={
 	  draw:function(container){
 	      var t = this;
-	      $('body').on('paste',function(evt){return(_t.handePaste(evt))});
+	      t.container = container;
+	      var input = $('<input>');
+	      container.append($('<div>').append($('<span>').text("Distance:").width("400px")).append(input))
+	      t.srcimg = $('<img>');
+	      container.append(t.srcimage);
+	      t.cnv = $('<canvas>').width('100%').height('100%');
+	      container.append(t.cnv);
+	      container.on('paste',function(evt){
+		  return(t.handlePaste(evt));
+			});
 	  },
 	  handlePaste : function  (evt) {
 	      var t = this;
@@ -28,20 +35,27 @@
 		      var fr = new FileReader();
 		      fr.onload = function(revt){
 			  //file is			  revt.target.result =
+			  t.srcimg.src = revt.target.result;
+			  var c = t.cnv[0].getContext('2d');
+			  c.drawImage(t.srcimg,0,0);
 		      }
 		      fr.readAsDataURL(items[i].getAsFile());
 		  }
 	      }
 	  },
-	  distance : 0
+	  srcimg:0,
+	  cnv:0,
+	  distance : 0,
+	  container : 0,  // container
       } // proto
 
       function startmeup(){
 	  var body = $('body').append($('<h1>').text('Comicify'));
-	  var c = new comic(body);
+	  var c = new comicify(body);
       }
 
-      window.document.onload = function(){startmeup();};
+
+      $(document).ready(function(){startmeup();});
       
     </script>
   </head>
