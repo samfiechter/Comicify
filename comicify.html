@@ -11,12 +11,10 @@
 	  draw:function(container){
 	      var t = this;
 	      t.container = container;
-	      var input = $('<input>');
+	      var input = $('<input>').val(15);
+	      container.append($('<div>').text("First set the distance to a value that sets colors merged, then paste an image to process"));
 	      container.append($('<div>').append($('<span>').text("Distance:").width("400px")).append(input))
 	      t.srcimg = $('<img>');
-	      container.append(t.srcimage);
-	      t.cnv = $('<canvas>').width('100%').height('100%');
-	      container.append(t.cnv);
 	      container.on('paste',function(evt){
 		  return(t.handlePaste(evt));
 			});
@@ -24,24 +22,27 @@
 	  handlePaste : function  (evt) {
 	      var t = this;
 	      var items = evt.originalEvent.clipboardData.items, paste;
-	      // Items have a "kind" (string, file) and a MIME type
-	      // console.log( 'First item "kind":', items[0].kind );
-	      // console.log( 'First item MIME type:', items[0].type );
-	      // If a user pastes image data, there are 2 items: the file name (at index 0) and the file (at index 1)
-	      // but if the user pastes plain text or HTML, index 0 is the data with markup and index 1 is the plain, unadorned text.
-	      t.fn = '';
 	      for (var i in items){
 		  if('file' ==items[i].kind){
 		      var fr = new FileReader();
 		      fr.onload = function(revt){
-			  //file is			  revt.target.result =
-			  t.srcimg.src = revt.target.result;
-			  var c = t.cnv[0].getContext('2d');
-			  c.drawImage(t.srcimg,0,0);
+			  t.srcimg[0].src = revt.target.result;
+			  t.srcimg.load(function(){t.process()});
 		      }
 		      fr.readAsDataURL(items[i].getAsFile());
 		  }
 	      }
+	  },
+	  process:function(){
+	      var t = this;
+	      var canvas = $('<canvas>');
+	      canvas[0].width = t.srcimg[0].width;
+	      canvas[0].height= t.srcimg[0].height;
+	      var ctx = canvas[0].getContext('2d');
+	      ctx.drawImage(t.srcimg[0],0,0);
+	      var outImg = $('<img>');
+	      outImg[0].src =canvas[0].toDataURL();
+	      t.container.append(outImg);
 	  },
 	  srcimg:0,
 	  cnv:0,
