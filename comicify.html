@@ -11,7 +11,7 @@
 	  draw:function(container){
 	      var t = this;
 	      t.container = container;
-	      var input = $('<input>').val(15);
+	      var input = $('<input>').val(t.distance).onchange(function(){t.distance=this.value;});	      
 	      container.append($('<div>').text("First set the distance to a value that sets colors merged, then paste an image to process"));
 	      container.append($('<div>').append($('<span>').text("Distance:").width("400px")).append(input))
 	      t.srcimg = $('<img>');
@@ -33,6 +33,8 @@
 		  }
 	      }
 	  },
+	  
+	  
 	  process:function(){
 	      var t = this;
 	      var canvas = $('<canvas>');
@@ -55,10 +57,16 @@
 	  },
 	  srcimg:0,
 	  cnv:0,
-	  distance : 0,
+	  distance : 15,
 	  container : 0,  // container
       } // proto
-
+      function distance(a,b){
+	  var o =0;
+	  for(i=0;i<3;i++){
+	      o += (a[i]-b[i])*(a[i]-b[i]);
+	  }
+	  return(Math.sqrt(o));
+      }
       function startmeup(){
 	  var body = $('body').append($('<h1>').text('Comicify'));
 	  var c = new comicify(body);
