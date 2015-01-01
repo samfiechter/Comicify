@@ -57,10 +57,10 @@
 	      }
 	      for (var i =0;i<w;i++){
 		  for(var j=0;j<h;j++){
-		      var x = i+(j*w);
+		      var x = 4*(i+(j*w));
+		      prog.text("Progress" + (x/(4*w*h))  +"%");
 		      t.avg=[t.image.data[x++],t.image.data[x++],t.image.data[x++],t.image.data[x++]];
 		      if(t.mask[i][j]) { t.doPoint(i,j);}
-		      prog.text("Progress" + (i + (w*j))/(w*h)  +"%");
 		  }
 	      }
 	      prog.remove()
@@ -73,7 +73,7 @@
 	      var t = this;
 	      var w = t.srcimg[0].width;
 	      var h = t.srcimg[0].height;
-	      var x = i+(j*w);
+	      var x = 4*(i+(j*w));
 	      var y= x;
 	      var p = [t.image.data[x++],t.image.data[x++],t.image.data[x++],t.image.data[x++]]
 	      if (t.distance > distance(t.avg,p)){
