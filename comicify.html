@@ -13,7 +13,7 @@
 	      t.container = container;
 	      var input = $('<input>').val(t.distance).change(function(){
 	      		t.distance=this.value;
-	      		if(''!= t.srcimg.src){
+	      		if(''!= t.srcimg[0].src){
 	      			t.process();
 	      		}
 	      });
