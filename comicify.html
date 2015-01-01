@@ -11,7 +11,8 @@
 	  draw:function(container){
 	      var t = this;
 	      t.container = container;
-	      var input = $('<input>').val(t.distance).onchange(function(){t.distance=this.value;});	      
+	      var input = $('<input>').val(t.distance).change(function(){t.distance=this.value;});
+	      
 	      container.append($('<div>').text("First set the distance to a value that sets colors merged, then paste an image to process"));
 	      container.append($('<div>').append($('<span>').text("Distance:").width("400px")).append(input))
 	      t.srcimg = $('<img>');
@@ -40,25 +41,64 @@
 	      var canvas = $('<canvas>');
 	      var w = canvas[0].width = t.srcimg[0].width;
 	      var h = canvas[0].height= t.srcimg[0].height;
-	      var ctx = canvas[0].getContext('2d');	      
-	      ctx.drawImage(t.srcimg[0],0,0);
-	      var image = ctx.getImageData(0,0,w,h);  //array [4*w*h] of colors RGBA
-	      var mask = Array(w);
+	      prog = $('<div>').text("Progress 0%");
+	      t.container.append(prog);
+	      t.container.append(canvas);
+	      t.ctx = canvas[0].getContext('2d');	      
+	      t.ctx.drawImage(t.srcimg[0],0,0);
+	      t.image = t.ctx.getImageData(0,0,w,h);  //array [4*w*h] of colors RGBA
+	      t.ctx.clearRect ( 0 , 0 ,w,h);
+	      t.mask = Array(w);
 	      for (var i =0;i<w;i++){
-		  mask[i] = Array(h);
+		  t.mask[i] = Array(h);
 		  for(var j=0;j<h;j++){
-		      mask[i][j]=0;
+		      t.mask[i][j]=true;
 		  }
 	      }
-	      
-	      var outImg = $('<img>');
-	      outImg[0].src =canvas[0].toDataURL();
-	      t.container.append(outImg);
+	      for (var i =0;i<w;i++){
+		  for(var j=0;j<h;j++){
+		      var x = i+(j*w);
+		      t.avg=[t.image.data[x++],t.image.data[x++],t.image.data[x++],t.image.data[x++]];
+		      if(t.mask[i][j]) { t.doPoint(i,j);}
+		      prog.text("Progress" + (i + (w*j))/(w*h)  +"%");
+		  }
+	      }
+	      prog.remove()
+	      t.ctx.putImageData(t.image,0,0);
+	      // var outImg = $('<img>');
+	      // outImg[0].src =canvas[0].toDataURL();
+	      // t.container.append(outImg);
 	  },
+	  doPoint:function(i,j){
+	      var t = this;
+	      var w = t.srcimg[0].width;
+	      var h = t.srcimg[0].height;
+	      var x = i+(j*w);
+	      var y= x;
+	      var p = [t.image.data[x++],t.image.data[x++],t.image.data[x++],t.image.data[x++]]
+	      if (t.distance > distance(t.avg,p)){
+		  t.mask[i][j] = false;
+		  for (var k=0;k<4;k++) {
+		      t.avg[k] = (p[k] + t.avg[k]) /2;
+		  }
+		  if( i+1 < w && t.mask[i+1][j] ) { t.doPoint(i+1,j)}
+		  if( i-1 > 0 && t.mask[i-1][j] ) { t.doPoint(i-1,j)}
+		  if( j+1 < h && t.mask[i][j+1] ) { t.doPoint(i,j+1)}
+		  if( j-1 > 0 && t.mask[i][j-1] ) { t.doPoint(i,j-1)}
+		  for (var k=0;k<4;k++) {
+		      t.image.data[y+k]  = t.avg[k];
+		  }
+	      }
+	      return;
+	  },
+	  ctx:0,
+	  mask:0,
+	  image:0,
+	  avg:0,
 	  srcimg:0,
 	  cnv:0,
 	  distance : 15,
-	  container : 0,  // container
+	  container : 0  // container
       } // proto
       function distance(a,b){
 	  var o =0;
