@@ -16,6 +16,7 @@
 	      container.append($('<div>').text("First set the distance to a value that sets colors merged, then paste an image to process"));
 	      container.append($('<div>').append($('<span>').text("Distance:").width("400px")).append(input))
 	      t.srcimg = $('<img>');
+	      t.srcimg.load(function(){t.process()});
 	      container.on('paste',function(evt){
 		  return(t.handlePaste(evt));
 			});
@@ -26,9 +27,10 @@
 	      for (var i in items){
 		  if('file' ==items[i].kind){
 		      var fr = new FileReader();
+		      console.log("Going");
 		      fr.onload = function(revt){
 			  t.srcimg[0].src = revt.target.result;
-			  t.srcimg.load(function(){t.process()});
+
 		      }
 		      fr.readAsDataURL(items[i].getAsFile());
 		  }
@@ -41,68 +43,92 @@
 	      var canvas = $('<canvas>');
 	      var w = canvas[0].width = t.srcimg[0].width;
 	      var h = canvas[0].height= t.srcimg[0].height;
-	      prog = $('<div>').text("Progress 0%");
+	      var prog = $('<div>').text("Progress 0%");
 	      t.container.append(prog);
-	      t.container.append(canvas);
 	      t.ctx = canvas[0].getContext('2d');	      
 	      t.ctx.drawImage(t.srcimg[0],0,0);
 	      t.image = t.ctx.getImageData(0,0,w,h);  //array [4*w*h] of colors RGBA
 	      t.ctx.clearRect ( 0 , 0 ,w,h);
 	      t.mask = Array(w);
+	      var zz = Array.apply(null,{length:w*h}).map(Number.call,Number);
 	      for (var i =0;i<w;i++){
 		  t.mask[i] = Array(h);
 		  for(var j=0;j<h;j++){
 		      t.mask[i][j]=true;
+		      var n = Math.floor(w*h*Math.random());
+		      var z = zz[n];
+		      zz[n] = zz[i*j];
+		      zz[i*j] =z;
 		  }
 	      }
-	      for (var i =0;i<w;i++){
-		  for(var j=0;j<h;j++){
-		      var x = 4*(i+(j*w));
-		      prog.text("Progress" + (x/(4*w*h))  +"%");
-		      t.avg=[t.image.data[x++],t.image.data[x++],t.image.data[x++],t.image.data[x++]];
-		      if(t.mask[i][j]) { t.doPoint(i,j);}
+	      for(var n=0;n<(w*h);n++){
+		  var x = zz[n];
+		  var j = Math.floor(x / w);
+		  var i = x % w;
+		  prog.text("Progress" + (n/(w*h))  +"%");
+		  if(t.mask[i][j]) {
+		      var y = x*4;
+		      t.avgct=1;
+		      t.avg=[t.image.data[y++],t.image.data[y++],t.image.data[y++],t.image.data[y++]];
+		      t.doPoint(i,j);
+		      t.doAvg();
 		  }
 	      }
 	      prog.remove()
 	      t.ctx.putImageData(t.image,0,0);
-	      // var outImg = $('<img>');
-	      // outImg[0].src =canvas[0].toDataURL();
-	      // t.container.append(outImg);
+	      var outImg = $('<img>');
+	      outImg[0].src =canvas[0].toDataURL();
+	      t.container.append(outImg);
+	  },
+	  doAvg:function(){
+	      var t= this;
+	      var w = t.srcimg[0].width;
+	      var h = t.srcimg[0].height;		  
+	      for (var i =0;i<w;i++){
+		  for(var j=0;j<h;j++){
+		      if(null==t.mask[i][j]){
+			  var n = 4*(i+(j*w));
+			  for (var k=0;k<4;k++) {			      
+			      t.image.data[n+k]  = Math.floor(t.avg[k]);
+			  }
+			  t.mask[i][j] = 0;
+		      }
+		  }
+	      }
 	  },
 	  doPoint:function(i,j){
 	      var t = this;
 	      var w = t.srcimg[0].width;
 	      var h = t.srcimg[0].height;
 	      var x = 4*(i+(j*w));
-	      var y= x;
 	      var p = [t.image.data[x++],t.image.data[x++],t.image.data[x++],t.image.data[x++]]
 	      if (t.distance > distance(t.avg,p)){
-		  t.mask[i][j] = false;
+		  t.mask[i][j] = null;
 		  for (var k=0;k<4;k++) {
-		      t.avg[k] = (p[k] + t.avg[k]) /2;
+		      t.avg[k] = ((p[k]*t.avgct) +t.avg[k]) /(t.avgct +1);
 		  }
+		  t.avgct++;
 		  if( i+1 < w && t.mask[i+1][j] ) { t.doPoint(i+1,j)}
 		  if( i-1 > 0 && t.mask[i-1][j] ) { t.doPoint(i-1,j)}
 		  if( j+1 < h && t.mask[i][j+1] ) { t.doPoint(i,j+1)}
 		  if( j-1 > 0 && t.mask[i][j-1] ) { t.doPoint(i,j-1)}
-		  for (var k=0;k<4;k++) {
-		      t.image.data[y+k]  = t.avg[k];
-		  }
 	      }
 	      return;
 	  },
+	  avgct:0,
 	  ctx:0,
 	  mask:0,
 	  image:0,
 	  avg:0,
 	  srcimg:0,
 	  cnv:0,
-	  distance : 15,
+	  distance : 8,
 	  container : 0  // container
       } // proto
+
       function distance(a,b){
 	  var o =0;
-	  for(i=0;i<3;i++){
+	  for(i=0;i<4;i++){
 	      o += (a[i]-b[i])*(a[i]-b[i]);
 	  }
 	  return(Math.sqrt(o));
