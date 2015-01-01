@@ -11,7 +11,12 @@
 	  draw:function(container){
 	      var t = this;
 	      t.container = container;
-	      var input = $('<input>').val(t.distance).change(function(){t.distance=this.value;});
+	      var input = $('<input>').val(t.distance).change(function(){
+	      		t.distance=this.value;
+	      		if(''!= t.srcimg.src){
+	      			t.process();
+	      		}
+	      });
 	      
 	      container.append($('<div>').text("First set the distance to a value that sets colors merged, then paste an image to process"));
 	      container.append($('<div>').append($('<span>').text("Distance:").width("400px")).append(input))
