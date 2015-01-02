@@ -54,7 +54,10 @@
 	      t.image = t.ctx.getImageData(0,0,w,h);  //array [4*w*h] of colors RGBA
 	      t.ctx.clearRect ( 0 , 0 ,w,h);
 	      t.mask = Array(w);
-	      var zz = Array.apply(null,{length:w*h}).map(Number.call,Number);
+	      var zz = Array();
+	      for (var i =0;i<w*h;i++){
+		  zz[i]=i;
+	      }
 	      for (var i =0;i<w;i++){
 		  t.mask[i] = Array(h);
 		  for(var j=0;j<h;j++){
@@ -69,7 +72,8 @@
 		  var x = zz[n];
 		  var j = Math.floor(x / w);
 		  var i = x % w;
-		  prog.text("Progress " + (n/(w*h))  +"%");
+		  var s= "Progress " + (n/(w*h))  +"%";
+		  prog.text(s);
 		  if(t.mask[i][j]) {
 		      var y = x*4;
 		      t.avgct=1;
