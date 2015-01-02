@@ -47,7 +47,7 @@
 	      var canvas = $('<canvas>');
 	      var w = canvas[0].width = t.srcimg[0].width;
 	      var h = canvas[0].height= t.srcimg[0].height;
-	      var prog = $('<div>').text("Progress 0%");
+	      var prog = $('<div>').text("Working...");
 	      t.container.append(prog);
 	      t.ctx = canvas[0].getContext('2d');	      
 	      t.ctx.drawImage(t.srcimg[0],0,0);
@@ -64,35 +64,41 @@
 		      t.mask[i][j]=true;
 		      var n = Math.floor(w*h*Math.random());
 		      var z = zz[n];
-		      zz[n] = zz[i*j];
-		      zz[i*j] =z;
-		  }
+		       zz[n] = zz[i*j];
+		       zz[i*j] =z;
+		   }
+	       }
+	       for(var n=0;n<(w*h);n++){
+		   var x = zz[n];
+		   var j = Math.floor(x / w);
+		   var i = x % w;
+		   var err = "";
+		   prog.append(".");
+		   if(t.mask[i][j]) {
+		       var y = x*4;
+		       t.avgct=1;
+		       t.avg=[t.image.data[y++],t.image.data[y++],t.image.data[y++],t.image.data[y++]];
+		       // t.avgPt(i+1,j);
+		       // t.avgPt(i+1,j+1);
+		       // t.avgPt(i+1,j-1);
+		       // t.avgPt(i,j);
+		       // t.avgPt(i,j+1);
+		       // t.avgPt(i,j-1);
+		       // t.avgPt(i-1,j);
+		       // t.avgPt(i-1,j+1);
+		       // t.avgPt(i-1,j-1);
+		       try {
+			   t.doPoint(i,j);   // do all the points next to it too...
+		       } catch(e){
+			   err = e.message;
+			   prog.text(e.message);
+		       }
+		       t.doPaint();
+		   }
+	       }
+	      if (err == ""){
+		  prog.remove();
 	      }
-	      for(var n=0;n<(w*h);n++){
-		  var x = zz[n];
-		  var j = Math.floor(x / w);
-		  var i = x % w;
-		  var s= "Progress " + (n/(w*h))  +"%";
-		  prog.text(s);
-		  if(t.mask[i][j]) {
-		      var y = x*4;
-		      t.avgct=1;
-		      t.avg=[t.image.data[y++],t.image.data[y++],t.image.data[y++],t.image.data[y++]];
-		      // t.avgPt(i+1,j);
-		      // t.avgPt(i+1,j+1);
-		      // t.avgPt(i+1,j-1);
-		      // t.avgPt(i,j);
-		      // t.avgPt(i,j+1);
-		      // t.avgPt(i,j-1);
-		      // t.avgPt(i-1,j);
-		      // t.avgPt(i-1,j+1);
-		      // t.avgPt(i-1,j-1);
-
-		      t.doPoint(i,j);   // do all the points next to it too...
-		      t.doPaint();
-		  }
-	      }
-	      prog.remove()
 	      t.ctx.putImageData(t.image,0,0);
 	      var outImg = $('<img>');
 	      outImg[0].src =canvas[0].toDataURL();
