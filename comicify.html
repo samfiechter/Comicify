@@ -35,7 +35,6 @@
 		      console.log("Going");
 		      fr.onload = function(revt){
 			  t.srcimg[0].src = revt.target.result;
-
 		      }
 		      fr.readAsDataURL(items[i].getAsFile());
 		  }
@@ -70,13 +69,23 @@
 		  var x = zz[n];
 		  var j = Math.floor(x / w);
 		  var i = x % w;
-		  prog.text("Progress" + (n/(w*h))  +"%");
+		  prog.text("Progress " + (n/(w*h))  +"%");
 		  if(t.mask[i][j]) {
 		      var y = x*4;
 		      t.avgct=1;
 		      t.avg=[t.image.data[y++],t.image.data[y++],t.image.data[y++],t.image.data[y++]];
-		      t.doPoint(i,j);
-		      t.doAvg();
+		      // t.avgPt(i+1,j);
+		      // t.avgPt(i+1,j+1);
+		      // t.avgPt(i+1,j-1);
+		      // t.avgPt(i,j);
+		      // t.avgPt(i,j+1);
+		      // t.avgPt(i,j-1);
+		      // t.avgPt(i-1,j);
+		      // t.avgPt(i-1,j+1);
+		      // t.avgPt(i-1,j-1);
+
+		      t.doPoint(i,j);   // do all the points next to it too...
+		      t.doPaint();
 		  }
 	      }
 	      prog.remove()
@@ -85,10 +94,21 @@
 	      outImg[0].src =canvas[0].toDataURL();
 	      t.container.append(outImg);
 	  },
-	  doAvg:function(){
+	  doPaint:function(){
 	      var t= this;
 	      var w = t.srcimg[0].width;
 	      var h = t.srcimg[0].height;		  
+	      for (var i =0;i<w;i++){
+		  for(var j=0;j<h;j++){
+		      var x = 4*(i+(j*w));	   	   
+		      if(null==t.mask[i][j]){
+			  for (var k=0;k<4;k++) {
+			      t.avg[k] = ((t.avg[k]*t.avgct) +t.image.data[x+k]) /(t.avgct +1);
+			  }
+			  t.avgct++;	      
+		      }
+		  }
+	      }
 	      for (var i =0;i<w;i++){
 		  for(var j=0;j<h;j++){
 		      if(null==t.mask[i][j]){
@@ -101,24 +121,34 @@
 		  }
 	      }
 	  },
+
 	  doPoint:function(i,j){
 	      var t = this;
 	      var w = t.srcimg[0].width;
 	      var h = t.srcimg[0].height;
-	      var x = 4*(i+(j*w));
+	      var x = 4*(i+(j*w));	   
 	      var p = [t.image.data[x++],t.image.data[x++],t.image.data[x++],t.image.data[x++]]
 	      if (t.distance > distance(t.avg,p)){
 		  t.mask[i][j] = null;
-		  for (var k=0;k<4;k++) {
-		      t.avg[k] = ((p[k]*t.avgct) +t.avg[k]) /(t.avgct +1);
-		  }
-		  t.avgct++;
 		  if( i+1 < w && t.mask[i+1][j] ) { t.doPoint(i+1,j)}
 		  if( i-1 > 0 && t.mask[i-1][j] ) { t.doPoint(i-1,j)}
 		  if( j+1 < h && t.mask[i][j+1] ) { t.doPoint(i,j+1)}
 		  if( j-1 > 0 && t.mask[i][j-1] ) { t.doPoint(i,j-1)}
 	      }
 	      return;
+	  },
+	  avgPt:function(i,j){
+	      var t = this;
+	      var w = t.srcimg[0].width;
+	      var h = t.srcimg[0].height;
+	      if(i>0 && j>0 && i<w && j<h){
+		  var x = 4*(i+(j*w));
+		  var p = [t.image.data[x++],t.image.data[x++],t.image.data[x++],t.image.data[x++]]
+		  for (var k=0;k<4;k++) {
+		      t.avg[k] = ((t.avg[k]*t.avgct) +p[k]) /(t.avgct +1);
+		  }
+		  t.avgct++;	      
+	      }
 	  },
 	  avgct:0,
 	  ctx:0,
@@ -131,17 +161,21 @@
 	  container : 0  // container
       } // proto
 
-      function distance(a,b){
-	  var o =0;
-	  for(i=0;i<4;i++){
-	      o += (a[i]-b[i])*(a[i]-b[i]);
-	  }
-	  return(Math.sqrt(o));
-      }
-      function startmeup(){
-	  var body = $('body').append($('<h1>').text('Comicify'));
-	  var c = new comicify(body);
-      }
+function distance(a,b){
+    var o =0;
+    for(i=0;i<4;i++){
+	o += (a[i]-b[i])*(a[i]-b[i]);
+    }
+    return(Math.sqrt(o));
+}
+
+
+function startmeup(){
+    var body = $('body').append($('<h1>').text('Comicify'));
+    var c = new comicify(body);
+}
+ 
+
 
 
       $(document).ready(function(){startmeup();});
