@@ -89,14 +89,12 @@
                               var avgct=0;
                               t.avg=[t.image.data[y++],t.image.data[y++],t.image.data[y++],t.image.data[y++]];
                               try {
-                                  
                                   t.doPoint(i,j);   // do all the points next to it too...
                                   t.doPaint();
                               } catch(e){
                                   err = e.message;
                                   prog.text(e.message);
-                              }
-                              
+                              }                              
                           }
                           n++;
                           q--;
@@ -188,20 +186,10 @@
           }
           return(Math.sqrt(o));
       }
-      
-      
-      function startmeup(){
-          var body = $('body').append($('<h1>').text('Comicify'));
-          var c = new comicify(body);
-      }
-      
-      
-      
-      
-      $(document).ready(function(){startmeup();});
-      
+      $(document).ready(function(){ var c = new comicify($('body'));});
     </script>
   </head>
   <body>
+    <h1>Comicify</h1><h2>Make a photo look like a comic book drawing...</h2>
   </body>
 </html>
