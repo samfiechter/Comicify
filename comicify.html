@@ -18,7 +18,7 @@
                   }
               });
               
-              container.append($('<div>').text("Directions").append(
+              container.append($('<div>').text("Directions:").append(
                   $('<ul>')
                       .append($('<li>').text("Set the distance to distance (manitude between color vecotrs) that defines a single (new) color"))
                       .append($('<li>').text("Paste an image to the page"))
@@ -78,7 +78,7 @@
               var err = "";
               var fn  = function(){
                   if (n<(w*h) && err == ""){
-		      var q = 100;
+		      var q = 300;
                       while  (q > 0 && n<(w*h) && err == ""){
                           var x = zz[n];
                           var j = Math.floor(x / w);
