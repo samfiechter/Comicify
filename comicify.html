@@ -3,191 +3,199 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script type="text/javascript">
       function comicify(c){
-	  var _t = this;
-	  _t.draw(c);
+          var _t = this;
+          _t.draw(c);
       }
-
+      
       comicify.prototype={
-	  draw:function(container){
-	      var t = this;
-	      t.container = container;
-	      var input = $('<input>').val(t.distance).change(function(){
-	      		t.distance=this.value;
-	      		if(''!= t.srcimg[0].src){
-	      			t.process();
-	      		}
-	      });
-	      
-	      container.append($('<div>').text("First set the distance to a value that sets colors merged, then paste an image to process"));
-	      container.append($('<div>').append($('<span>').text("Distance:").width("400px")).append(input))
-	      t.srcimg = $('<img>');
-	      t.srcimg.load(function(){t.process()});
-	      container.on('paste',function(evt){
-		  return(t.handlePaste(evt));
-			});
-	  },
-	  handlePaste : function  (evt) {
-	      var t = this;
-	      var items = evt.originalEvent.clipboardData.items, paste;
-	      for (var i in items){
-		  if('file' ==items[i].kind){
-		      var fr = new FileReader();
-		      console.log("Going");
-		      fr.onload = function(revt){
-			  t.srcimg[0].src = revt.target.result;
-		      }
-		      fr.readAsDataURL(items[i].getAsFile());
-		  }
+          draw:function(container){
+              var t = this;
+              t.container = container;
+              var input = $('<input>').val(t.distance).change(function(){
+                  t.distance=this.value;
+                  if(''!= t.srcimg[0].src){
+                      t.process();
+                  }
+              });
+              
+              container.append($('<div>').text("First set the distance to a value that sets colors merged, then paste an image to process"));
+              container.append($('<div>').append($('<span>').text("Distance:").width("400px")).append(input))
+              t.srcimg = $('<img>');
+              t.srcimg.load(function(){t.process()});
+              container.on('paste',function(evt){
+                  return(t.handlePaste(evt));
+              });
+          },
+          handlePaste : function  (evt) {
+              var t = this;
+              var items = evt.originalEvent.clipboardData.items, paste;
+              for (var i in items){
+                  if('file' ==items[i].kind){
+                      var fr = new FileReader();
+                      console.log("Going");
+                      fr.onload = function(revt){
+                          t.srcimg[0].src = revt.target.result;
+                      }
+                      fr.readAsDataURL(items[i].getAsFile());
+                  }
+              }
+          },
+          
+          
+          process:function(){
+              var t = this;
+              var canvas = $('<canvas>');
+              var w = canvas[0].width = t.srcimg[0].width;
+              var h = canvas[0].height= t.srcimg[0].height;
+              var prog = $('<span>').text("Processing...");
+              t.container.append(prog);
+              t.ctx = canvas[0].getContext('2d');
+              t.ctx.drawImage(t.srcimg[0],0,0);
+              t.image = t.ctx.getImageData(0,0,w,h);  //array [4*w*h] of colors RGBA
+              t.ctx.clearRect ( 0 , 0 ,w,h);
+              t.mask = Array(w);
+              var zz = Array();
+              for (var i =0;i<w*h;i++){
+                  zz[i]=i;
+              }
+              for (var i =0;i<w;i++){
+                  t.mask[i] = Array(h);
+                  for(var j=0;j<h;j++){
+                      t.mask[i][j]=true;
+                      var n = Math.floor(w*h*Math.random());
+                      var z = zz[n];
+                      zz[n] = zz[i*j];
+                      zz[i*j] =z;
+                  }
 	      }
-	  },
-	  
-	  
-	  process:function(){
-	      var t = this;
-	      var canvas = $('<canvas>');
-	      var w = canvas[0].width = t.srcimg[0].width;
-	      var h = canvas[0].height= t.srcimg[0].height;
-	      var prog = $('<div>').text("Working...");
-	      t.container.append(prog);
-	      t.ctx = canvas[0].getContext('2d');	      
-	      t.ctx.drawImage(t.srcimg[0],0,0);
-	      t.image = t.ctx.getImageData(0,0,w,h);  //array [4*w*h] of colors RGBA
-	      t.ctx.clearRect ( 0 , 0 ,w,h);
-	      t.mask = Array(w);
-	      var zz = Array();
-	      for (var i =0;i<w*h;i++){
-		  zz[i]=i;
-	      }
-	      for (var i =0;i<w;i++){
-		  t.mask[i] = Array(h);
-		  for(var j=0;j<h;j++){
-		      t.mask[i][j]=true;
-		      var n = Math.floor(w*h*Math.random());
-		      var z = zz[n];
-		       zz[n] = zz[i*j];
-		       zz[i*j] =z;
-		   }
-	       }
-	       for(var n=0;n<(w*h);n++){
-		   var x = zz[n];
-		   var j = Math.floor(x / w);
-		   var i = x % w;
-		   var err = "";
-		   prog.append(".");
-		   if(t.mask[i][j]) {
-		       var y = x*4;
-		       t.avgct=1;
-		       t.avg=[t.image.data[y++],t.image.data[y++],t.image.data[y++],t.image.data[y++]];
-		       // t.avgPt(i+1,j);
-		       // t.avgPt(i+1,j+1);
-		       // t.avgPt(i+1,j-1);
-		       // t.avgPt(i,j);
-		       // t.avgPt(i,j+1);
-		       // t.avgPt(i,j-1);
-		       // t.avgPt(i-1,j);
-		       // t.avgPt(i-1,j+1);
-		       // t.avgPt(i-1,j-1);
-		       try {
-			   t.doPoint(i,j);   // do all the points next to it too...
-		       } catch(e){
-			   err = e.message;
-			   prog.text(e.message);
-		       }
-		       t.doPaint();
-		   }
-	       }
-	      if (err == ""){
-		  prog.remove();
-	      }
-	      t.ctx.putImageData(t.image,0,0);
-	      var outImg = $('<img>');
-	      outImg[0].src =canvas[0].toDataURL();
-	      t.container.append(outImg);
-	  },
-	  doPaint:function(){
-	      var t= this;
-	      var w = t.srcimg[0].width;
-	      var h = t.srcimg[0].height;		  
-	      for (var i =0;i<w;i++){
-		  for(var j=0;j<h;j++){
-		      var x = 4*(i+(j*w));	   	   
-		      if(null==t.mask[i][j]){
-			  for (var k=0;k<4;k++) {
-			      t.avg[k] = ((t.avg[k]*t.avgct) +t.image.data[x+k]) /(t.avgct +1);
-			  }
-			  t.avgct++;	      
-		      }
-		  }
-	      }
-	      for (var i =0;i<w;i++){
-		  for(var j=0;j<h;j++){
-		      if(null==t.mask[i][j]){
-			  var n = 4*(i+(j*w));
-			  for (var k=0;k<4;k++) {			      
-			      t.image.data[n+k]  = Math.floor(t.avg[k]);
-			  }
-			  t.mask[i][j] = 0;
-		      }
-		  }
-	      }
-	  },
 
-	  doPoint:function(i,j){
-	      var t = this;
-	      var w = t.srcimg[0].width;
-	      var h = t.srcimg[0].height;
-	      var x = 4*(i+(j*w));	   
-	      var p = [t.image.data[x++],t.image.data[x++],t.image.data[x++],t.image.data[x++]]
-	      if (t.distance > distance(t.avg,p)){
-		  t.mask[i][j] = null;
-		  if( i+1 < w && t.mask[i+1][j] ) { t.doPoint(i+1,j)}
-		  if( i-1 > 0 && t.mask[i-1][j] ) { t.doPoint(i-1,j)}
-		  if( j+1 < h && t.mask[i][j+1] ) { t.doPoint(i,j+1)}
-		  if( j-1 > 0 && t.mask[i][j-1] ) { t.doPoint(i,j-1)}
-	      }
-	      return;
-	  },
-	  avgPt:function(i,j){
-	      var t = this;
-	      var w = t.srcimg[0].width;
-	      var h = t.srcimg[0].height;
-	      if(i>0 && j>0 && i<w && j<h){
-		  var x = 4*(i+(j*w));
-		  var p = [t.image.data[x++],t.image.data[x++],t.image.data[x++],t.image.data[x++]]
-		  for (var k=0;k<4;k++) {
-		      t.avg[k] = ((t.avg[k]*t.avgct) +p[k]) /(t.avgct +1);
-		  }
-		  t.avgct++;	      
-	      }
-	  },
-	  avgct:0,
-	  ctx:0,
-	  mask:0,
-	  image:0,
-	  avg:0,
-	  srcimg:0,
-	  cnv:0,
-	  distance : 35,
-	  container : 0  // container
+	      var n =0;
+	      var err = "";
+	      var fn  = function(){
+		  if (n<(w*h) && err == ""){
+		      var x = zz[n];
+		      var j = Math.floor(x / w);
+		      var i = x % w;
+		      prog.text("Processing " + String(100*n/(w*h)) + "%");
+		      if(t.mask[i][j]) {
+			  var y = x*4;
+			  var avgct=0;
+			  t.avg=[t.image.data[y++],t.image.data[y++],t.image.data[y++],t.image.data[y++]];
+			  // t.avgPt(i+1,j,avgct++);
+                          // t.avgPt(i+1,j+1,avgct++);
+                          // t.avgPt(i+1,j-1,avgct++);
+                          // t.avgPt(i,j,avgct++);
+                          // t.avgPt(i,j+1,avgct++);
+                          // t.avgPt(i,j-1,avgct++);
+                          // t.avgPt(i-1,j,avgct++);
+                          // t.avgPt(i-1,j+1,avgct++);
+                          // t.avgPt(i-1,j-1,avgct++);
+			  try {
+				  t.doPoint(i,j);   // do all the points next to it too...
+			  } catch(e){
+			      err = e.message;
+			      prog.text(e.message);
+                          }
+			  t.doPaint();
+		      }
+		      n++;
+		      window.setTimeout(fn,4);
+		  } else {
+		      if (err == ""){
+			  prog.remove();
+                      }
+		      t.ctx.putImageData(t.image,0,0);
+		      var outImg = $('<img>');
+                      outImg[0].src =canvas[0].toDataURL();
+                      t.container.append(outImg);
+                  }
+	      };
+	      window.setTimeout(fn,4);
+          },
+          doPaint:function(){
+              var t= this;
+              var w = t.srcimg[0].width;
+              var h = t.srcimg[0].height;
+              var avgct = 1;
+              for (var i =0;i<w;i++){
+                  for(var j=0;j<h;j++){
+                      var x = 4*(i+(j*w));
+                      if(null==t.mask[i][j]){
+                          for (var k=0;k<4;k++) {
+                              t.avg[k] = ((t.avg[k]*avgct) +t.image.data[x+k]) /(avgct +1);
+                          }
+                          avgct++;
+                      }
+                  }
+              }
+              for (var i =0;i<w;i++){
+                  for(var j=0;j<h;j++){
+                      if(null==t.mask[i][j]){
+                          var n = 4*(i+(j*w));
+                          for (var k=0;k<4;k++) {
+                              t.image.data[n+k]  = Math.floor(t.avg[k]);
+                          }
+                          t.mask[i][j] = 0;
+                      }
+                  }
+              }
+          },
+          
+          doPoint:function(i,j){
+              var t = this;
+              var w = t.srcimg[0].width;
+              var h = t.srcimg[0].height;
+              var x = 4*(i+(j*w));
+              var p = [t.image.data[x++],t.image.data[x++],t.image.data[x++],t.image.data[x++]]
+              if (t.distance > distance(t.avg,p)){
+                  t.mask[i][j] = null;
+                  if( i+1 < w && t.mask[i+1][j] ) { t.doPoint(i+1,j)}
+                  if( i-1 > 0 && t.mask[i-1][j] ) { t.doPoint(i-1,j)}
+                  if( j+1 < h && t.mask[i][j+1] ) { t.doPoint(i,j+1)}
+                  if( j-1 > 0 && t.mask[i][j-1] ) { t.doPoint(i,j-1)}
+              }
+              return;
+          },
+          avgPt:function(i,j,ct){
+              var t = this;
+              var w = t.srcimg[0].width;
+              var h = t.srcimg[0].height;
+              if(i>0 && j>0 && i<w && j<h){
+                  var x = 4*(i+(j*w));
+                  var p = [t.image.data[x++],t.image.data[x++],t.image.data[x++],t.image.data[x++]]
+                  for (var k=0;k<4;k++) {
+                      t.avg[k] = ((t.avg[k]*ct) +p[k]) /(ct +1);
+                  }
+              }
+          },
+          avgct:0,
+          ctx:0,
+          mask:0,
+          image:0,
+          avg:0,
+          srcimg:0,
+          cnv:0,
+          distance : 35,
+          container : 0  // container
       } // proto
-
-function distance(a,b){
-    var o =0;
-    for(i=0;i<4;i++){
-	o += (a[i]-b[i])*(a[i]-b[i]);
-    }
-    return(Math.sqrt(o));
-}
-
-
-function startmeup(){
-    var body = $('body').append($('<h1>').text('Comicify'));
-    var c = new comicify(body);
-}
- 
-
-
-
+      
+      function distance(a,b){
+          var o =0;
+          for(i=0;i<4;i++){
+              o += (a[i]-b[i])*(a[i]-b[i]);
+          }
+          return(Math.sqrt(o));
+      }
+      
+      
+      function startmeup(){
+          var body = $('body').append($('<h1>').text('Comicify'));
+          var c = new comicify(body);
+      }
+      
+      
+      
+      
       $(document).ready(function(){startmeup();});
       
     </script>
