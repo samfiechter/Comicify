@@ -19,11 +19,11 @@
               });
               
               container.append($('<div>').text("Directions").append(
-              		$('<ul>')
-              		.append($('<li>').text("Set the distance to distance (manitude between color vecotrs) that defines a single (new) color"))
-              		.append($('<li>').text("Paste an image to the page"))
-              			.append($('<li>').text("Wait -- you doing math in Javascript after all"))
-              			));
+                  $('<ul>')
+                      .append($('<li>').text("Set the distance to distance (manitude between color vecotrs) that defines a single (new) color"))
+                      .append($('<li>').text("Paste an image to the page"))
+                      .append($('<li>').text("Wait -- you're processing an image in Javascript..."))
+              ));
               container.append($('<div>').append($('<span>').text("Distance:").width("400px")).append(input))
               t.srcimg = $('<img>');
               t.srcimg.load(function(){t.process()});
@@ -72,50 +72,47 @@
                       zz[n] = zz[i*j];
                       zz[i*j] =z;
                   }
-	      }
-
-	      var n =0;
-	      var err = "";
-	      var fn  = function(){
-		  if (n<(w*h) && err == ""){
-		      var x = zz[n];
-		      var j = Math.floor(x / w);
-		      var i = x % w;
-		      prog.text("Processing " + String(100*n/(w*h)) + "%");
-		      if(t.mask[i][j]) {
-			  var y = x*4;
-			  var avgct=0;
-			  t.avg=[t.image.data[y++],t.image.data[y++],t.image.data[y++],t.image.data[y++]];
-			  // t.avgPt(i+1,j,avgct++);
-                          // t.avgPt(i+1,j+1,avgct++);
-                          // t.avgPt(i+1,j-1,avgct++);
-                          // t.avgPt(i,j,avgct++);
-                          // t.avgPt(i,j+1,avgct++);
-                          // t.avgPt(i,j-1,avgct++);
-                          // t.avgPt(i-1,j,avgct++);
-                          // t.avgPt(i-1,j+1,avgct++);
-                          // t.avgPt(i-1,j-1,avgct++);
-			  try {
-				  t.doPoint(i,j);   // do all the points next to it too...
-			  } catch(e){
-			      err = e.message;
-			      prog.text(e.message);
+              }
+              
+              var n =0;
+              var err = "";
+              var fn  = function(){
+                  if (n<(w*h) && err == ""){
+		      var q = 100;
+                      while  (q > 0 && n<(w*h) && err == ""){
+                          var x = zz[n];
+                          var j = Math.floor(x / w);
+                          var i = x % w;
+                          prog.text("Processing " + String(100*n/(w*h)) + "%");
+                          if(t.mask[i][j]) {
+                              var y = x*4;
+                              var avgct=0;
+                              t.avg=[t.image.data[y++],t.image.data[y++],t.image.data[y++],t.image.data[y++]];
+                              try {
+                                  
+                                  t.doPoint(i,j);   // do all the points next to it too...
+                                  t.doPaint();
+                              } catch(e){
+                                  err = e.message;
+                                  prog.text(e.message);
+                              }
+                              
                           }
-			  t.doPaint();
-		      }
-		      n++;
-		      window.setTimeout(fn,4);
-		  } else {
-		      if (err == ""){
-			  prog.remove();
+                          n++;
+                          q--;
                       }
-		      t.ctx.putImageData(t.image,0,0);
-		      var outImg = $('<img>');
+                      window.setTimeout(fn,4);
+                  } else {
+                      if (err == ""){
+                          prog.remove();
+                      }
+                      t.ctx.putImageData(t.image,0,0);
+                      var outImg = $('<img>');
                       outImg[0].src =canvas[0].toDataURL();
                       t.container.append(outImg);
                   }
-	      };
-	      window.setTimeout(fn,4);
+              };
+              window.setTimeout(fn,4);
           },
           doPaint:function(){
               var t= this;
