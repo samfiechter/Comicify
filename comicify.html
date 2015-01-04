@@ -99,7 +99,7 @@
                           n++;
                           q--;
                       }
-		      prog.text("Processing " + String(100*n/(w*h)) + "%");
+	
                       window.setTimeout(fn,4);
                   } else {
                       if (err == ""){
@@ -111,6 +111,7 @@
                       t.container.append(outImg);
                   }
               };
+              prog.text("Processing " + String(100*n/(w*h)) + "%");
               window.setTimeout(fn,4);
           },
           doPaint:function(){
