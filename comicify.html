@@ -83,7 +83,7 @@
                           var x = zz[n];
                           var j = Math.floor(x / w);
                           var i = x % w;
-                          prog.text("Processing " + String(100*n/(w*h)) + "%");
+
                           if(t.mask[i][j]) {
                               var y = x*4;
                               var avgct=0;
@@ -99,6 +99,7 @@
                           n++;
                           q--;
                       }
+		      prog.text("Processing " + String(100*n/(w*h)) + "%");
                       window.setTimeout(fn,4);
                   } else {
                       if (err == ""){
