@@ -76,9 +76,11 @@
               
               var n =0;
               var err = "";
+	      var step = (w*h)/100;
+	      var progress = 0;
               var fn  = function(){
                   if (n<(w*h) && err == ""){
-		      var q = 300;
+		      var q = Math.floor(step);
                       while  (q > 0 && n<(w*h) && err == ""){
                           var x = zz[n];
                           var j = Math.floor(x / w);
@@ -99,8 +101,9 @@
                           n++;
                           q--;
                       }
-	
-                      window.setTimeout(fn,4);
+		      progress ++;
+		      prog.text("Processing " + String(progress) + "%");
+                      window.setTimeout(fn,0.0001);
                   } else {
                       if (err == ""){
                           prog.remove();
@@ -111,7 +114,6 @@
                       t.container.append(outImg);
                   }
               };
-              prog.text("Processing " + String(100*n/(w*h)) + "%");
               window.setTimeout(fn,4);
           },
           doPaint:function(){
