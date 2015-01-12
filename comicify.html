@@ -93,17 +93,23 @@
                               try {
                                   t.doPoint(i,j);   // do all the points next to it too...
                                   t.doPaint();
-                              } catch(e){
-                                  err = e.message;
-                                  prog.text(e.message);
+			      } catch(e){
+				  if (! e.message == "Maximum call stack size exceeded") {
+				      err = e.message;
+				      prog.text(e.message);
+				  } else{
+				      t.doPaint();
+				  } // ignore call stack (we'll try 
                               }                              
                           }
                           n++;
                           q--;
                       }
 		      progress ++;
-		      prog.text("Processing " + String(progress) + "%");
-                      window.setTimeout(fn,0.0001);
+		      if (err == ""){
+			  prog.text("Processing " + String(progress) + "%");
+			  window.setTimeout(fn,0.0001);
+                      }
                   } else {
                       if (err == ""){
                           prog.remove();
